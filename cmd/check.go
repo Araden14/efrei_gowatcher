@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/Araden14/efrei_gowatcher/internal/checker"
+	"github.com/Araden14/efrei_gowatcher/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -51,18 +52,23 @@ var checkCmd = &cobra.Command{
 		for _, url := range targets {
 			go func(u string) {
 				defer wg.Done()
-				result := checker.CheckURL(u)
+				target := config.InputTarget{
+					Name:  u, // Use URL as name for simplicity
+					URL:   u,
+					Owner: "unknown", // Default owner
+				}
+				result := checker.CheckURL(target)
 
 				if result.Err != nil {
 					var unreachable *checker.UnreachableError
 
 					if errors.As(result.Err, &unreachable) {
-						fmt.Printf("%s est innaccessible : %v\n", unreachable.URL, unreachable.Err)
+						fmt.Printf("%s est innaccessible : %v\n", unreachable.URL, unreachable.Unwrap())
 					} else {
-						fmt.Printf("%s : erreur - %v\n", result.Target, result.Err)
+						fmt.Printf("%s : erreur - %v\n", result.InputTarget.URL, result.Err)
 					}
 				} else {
-					fmt.Printf("OK %s - %s\n", result.Target, result.Status)
+					fmt.Printf("OK %s - %s\n", result.InputTarget.URL, result.Status)
 				}
 			}(url)
 		}

@@ -11,3 +11,7 @@ type UnreachableError struct {
 func (e *UnreachableError) Error() string {
 	return fmt.Sprintf("URL %s is unreachable: %v", e.URL, e.err)
 }
+
+func (e *UnreachableError) Unwrap() error {
+	return e.err
+}
